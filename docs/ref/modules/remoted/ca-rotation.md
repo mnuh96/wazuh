@@ -138,6 +138,17 @@ Every `wazuh-manager-certs` command that writes follows one rule: **what it coul
 is exit 2; what it read fine but would not accept is exit 1.** Full table and per-guard mapping:
 [`wazuh-manager-certs` README — Exit codes](../../../../src/shared_modules/manager_certs/README.md#exit-codes).
 
+## Enrollment tokens and a rotation
+
+Agents already enrolled are not affected by this; only tokens still used to enroll new agents are. A
+rotation that keeps the CA key does not change the pin, so pinned tokens survive it. A pinned token
+(the default) trusts only the CA that signed the master's listener certificate when it was minted,
+so pinned tokens minted before step 4 stop working once the leaves are replaced. An `--embed-ca`
+token carries the master's whole bundle, so it stops working only if it was minted before step 1.
+After step 4 has completed on every node, mint new tokens for the affected ones still in use
+(install scripts, configuration management) and revoke the old ones with
+`wazuh-manager-authd --revoke-enrollment-token <id>`.
+
 ## Compatibility during a rotation
 
 - **A bundle that predates this feature** — a plain PEM placed by the installer or by hand — keeps
